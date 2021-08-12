@@ -2,7 +2,7 @@
 
 #### Chapter exercises from the book SICP
 
-#### By _**{Gioacchino Castorio}**_
+#### By _**Gioacchino Castorio**_
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
@@ -20,6 +20,7 @@ All the implementations are my own and they may include errors or imprecisions.
 
 All the exercises require a plain installation of _GNU mit-scheme_.
 If you are using GNU/Linux and Aptitude as a package manager, you may use the following command to install _GNU mit-scheme_:
+
 `# apt-get install mit-scheme`
 
 ## Contact Information
