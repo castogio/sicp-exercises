@@ -604,3 +604,134 @@
              	k)
      (- x)))
 
+; Exercise 1.40
+; define procedure (cubic a b c) and approximate the zeroes of x^3 + ax^2 + bx + c
+; use newtons-method
+
+(define tolerance .00000001)
+(define (fixed-point f first-guess)
+  (define (close-enuf? v1 v2)
+    (< (abs (- v1 v2)) tolerance))                          
+  (define (try guess)
+    (let ((next (f guess)))
+          (if (close-enuf? guess next)
+              next
+              (try next))))
+  (try first-guess))
+
+
+(define (newtons-method g guess)
+  (fixed-point (newtons-transform g) guess))
+
+(define (newtons-transform g)
+  (lambda (x)
+    (- x (/ (g x) ((deriv g) x)))))
+
+(define (deriv g)
+  (lambda (x)
+    (/ (- (g (+ x dx)) (g x)) dx)))
+
+(define dx .00000001)
+
+(define (cubic a b c)
+  (define (cube x) (* x x x)) 
+  (lambda (x) (+ (cube x) (* a (square x)) (* b x) c)))
+
+(define (zero-cubic a b c)
+  (newtons-method (cubic a b c) 1))
+
+
+; Exercise 1.41
+; define a procedure (double f) that has a function as a parameters
+; it returns a function that applies f twice to its argument
+(define (double f)
+  (lambda (x) (f (f x))))
+
+; example
+(define (inc x) (+ 1 x))
+((double inc) 1)
+
+; TEST: (((double (double double)) inc) 5)
+; (double double) --> (lambda (x) (double (double x))
+; (f x) = (double x)
+; (double f) --> (g x) = (f (f x))
+; (double g)) --> (g (g x)) --> (g (f (f x))) --> (f (f (f (f x))))
+; ((double (double double)) inc) --> (double (double (double (double inc)))) --> (d (d (d (+2 x))))
+; --> (d (d (+4 x))) --> (d (+8 x)) --> (+ 16 x)
+(((double (double double)) inc) 5) ; --> (+ 16 x) --> 21
+
+; Exercise 1.42
+; Given two 1 argument functions f and g
+; composition of f and g is x |--> f[g(x)]
+; write a procedure that implements the composition (compose f g)
+(define compose
+  (lambda (f g)
+    (lambda (x) (f (g x)))))
+
+((compose square inc) 6)
+
+; Exercise 1.43
+; given a function f and a number n positive integer
+; implement the n-th application of f
+; g(x) = f(f(...f(x)))
+(define (repeated f n)
+  (if (= n 0)
+      (lambda (x) x)
+      (compose f (repeated f (- n 1)))))
+
+((repeated square 2) 5)
+
+; Exercise 1.44
+; write a procedure that smooths a function
+; s(x) = (avg f(x-dx) f(x) f(x+dx)) with dx very small
+; (smooth f) --> generate the smoothed version
+; then write the n-fold smoothed function
+
+(define (smooth f)
+  (define dx .00000001)
+  (lambda (x) (/ (+
+		   (f (+ x dx)) 
+		   (f x) 
+		   (f (- x dx))) 
+		 3.0)))
+
+(define (smooth-nth f n)
+  (repeated (smooth f) n))
+
+; Exercise 1.46
+; rewrite the sqrt procedure in sec 1.1.7 and the fixed-point procedure of section 1.3.3 to use an iterative-improve procedure
+; the iterative-improve procedure takes f and g procedures as parameters
+; f: tell if a guess is good enough
+; g: method to improve the guess
+; return a guess as a value and improve the guess until it is good enough
+
+(define (iterative-improve good-enuf? improve)
+  (lambda (initial-guess)
+    (define (iter guess)
+      (if (good-enuf? guess)
+	  guess
+	  (iter (improve guess))))
+    (iter initial-guess)))
+
+; redefine (sqrt x) in section 1.1.7
+(define (sqrt x)
+  (define (average n1 n2) (/ (+ n1 n2) 2.0))
+  (define (good-enuf? guess) 
+    (< (abs (- (square guess) x)) 0.000001))
+  (define (improve guess)
+    (average guess (/ x guess)))
+  ((iterative-improve good-enuf? improve) 1.0))
+
+; redefine (fixed-fixed f first-guess) in section 1.3.3
+(define (fixed-point f first-guess)
+  (define tolerance 0.00000001)
+  (define (next guess)
+    (f guess))
+  (define (close-enuf? guess)
+    (< (abs (- guess (next guess))) tolerance))
+  ((iterative-improve close-enuf? next) first-guess))
+
+(fixed-point cos 1.0)
+(fixed-point (lambda (y) 
+	       (+ (sin y) (cos y)))
+	     1.0)
